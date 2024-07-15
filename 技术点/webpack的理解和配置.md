@@ -1,5 +1,9 @@
 # 项目构建
 
+> 基本架构，注意图片可能会丢失，但是这个不重要，只是为了方便理解
+
+![](https://guiwanzhyq.oss-cn-hangzhou.aliyuncs.com/hc/img/20240715/8deadc5e-595f-48fd-adf5-2a99a24662e6.png)
+
 1. 初始化项目
 
 - 创建一个新的文件夹作为项目根目录。
