@@ -1,0 +1,241 @@
+# 闭包
+
+闭包是指一个函数可以访问并且操作在其外部定义，但不在全局作用域内的变量。这是因为函数被创建时会补货其周围的词法环境。当函数被调用时，即使它在外部函数执行完毕后仍然存在，它依然可以访问到创建时的词法环境的变量。
+
+例如：
+
+```javascript
+function outer() {
+    var count = 0;
+    return function inner() {
+        count++;
+        console.log(count);
+    };
+}
+var closureFunc = outer();
+closureFunc(); // 输出 1
+closureFunc(); // 输出 2
+```
+
+在这个例子中，`inner` 函数是一个闭包，因为它可以访问 `outer` 函数的局部变量 `count`，即使 `outer` 函数已经执行完毕。
+
+# 原型链
+
+JavaScript中，所有对象都有一个原型对象（除了`Object.prototype`的原型是`null`）。当你尝试访问一个对象的属性或方法时，如果该对象本身没有这个属性或方法，JavaScript引擎会沿着原型链查找，直到找到该属性或方法或到达原型链的终点（通常是`null`）。
+
+例如：
+
+```javascript
+function Person(name) {
+    this.name = name;
+}
+Person.prototype.greet = function() {
+    console.log("Hello, my name is " + this.name);
+};
+
+var john = new Person("John");
+john.greet(); // 输出 "Hello, my name is John"
+```
+
+在这里，`greet` 方法并没有直接定义在 `john` 对象上，而是定义在了 `Person.prototype` 上。当调用 `john.greet()` 时，JavaScript 会沿着原型链找到 `Person.prototype` 并调用 `greet` 方法。
+
+# 作用域
+
+作用域定义了变量的可访问性。JavaScript有以下几种作用域：
+
+- **全局作用域**：在任何地方都可以访问的变量。
+- **函数作用域**：在函数内部定义的变量只能在该函数内部访问。
+- **块级作用域**（ES6 引入）：在代码块 `{}` 内部定义的变量只能在该代码块内访问，这通常由 `let` 和 `const` 关键字声明。
+
+例如：
+
+```javascript
+if (true) {
+    let blockScopedVar = "I'm block scoped!";
+}
+console.log(blockScopedVar); // ReferenceError: blockScopedVar is not defined
+```
+
+在这个例子中，`blockScopedVar` 是块级作用域的变量，在 `{}` 外部访问时会抛出 `ReferenceError`。
+
+# 异步编程
+
+## 回调函数
+
+这是最原始的异步处理方式。在发起一个异步操作时，提供一个函数作为参数，当异步操作完成时，该函数（回调函数）会被调用。
+
+例如，在Node.js中处理文件读取或网络请求时常用此模式。但过度使用回调函数可能导致“回调地狱”，即多层嵌套的回调函数难以阅读和维护。
+
+```javascript
+fs.readFile('file.txt', 'utf8', (err, data) => {
+  if (err) throw err;
+  console.log(data);
+});
+```
+
+什么是回调地狱？
+
+回调地狱是指在编写JavaScript代码，尤其是处理异步操作时，由于过度使用嵌套的回调函数而导致的代码结构混乱、难以理解和维护的现象。当多个异步操作需要顺序执行，每个操作的完成都依赖于前一个操作的结果时，很容易形成这种多层嵌套的结构。
+
+下面是一个简单的回调地狱示例：
+
+```javascript
+function readFile(file, callback) {
+    // 模拟异步读取文件，实际应用中可能是xhr请求或文件系统操作等
+    setTimeout(function() {
+        console.log(`Reading ${file}...`);
+        callback(null, `Contents of ${file}`);
+    }, 1000);
+}
+
+readFile('file1.txt', function(error, content1) {
+    if (error) {
+        console.error('Error reading file1:', error);
+    } else {
+        readFile('file2.txt', function(error, content2) {
+            if (error) {
+                console.error('Error reading file2:', error);
+            } else {
+                readFile('file3.txt', function(error, content3) {
+                    if (error) {
+                        console.error('Error reading file3:', error);
+                    } else {
+                        console.log(content1);
+                        console.log(content2);
+                        console.log(content3);
+                    }
+                });
+            }
+        });
+    }
+});
+```
+
+在这个例子中，我们模拟了读取三个文件的操作，每个文件读取完成后执行下一个文件的读取。可以看到，随着异步操作数量的增加，回调函数的嵌套层级也相应增加，这不仅使得代码难以阅读，而且对于错误处理和代码维护来说也是一个噩梦。这就是所谓的“回调地狱”。
+
+为了解决回调地狱问题，现代JavaScript引入了Promise、async/await等更优雅的异步编程模式，以减少嵌套并提高代码的可读性。
+
+## 事件监听
+
+利用事件驱动模型处理异步操作，如DOM事件或Node.js中的 EventEmitter。当特定事件触发时，注册的事件处理器（回调函数）会被调用。
+
+```javascript
+button.addEventListener('click', () => {
+  console.log('Button clicked!');
+});
+```
+
+## 发布/订阅模式（Publish/Subscribe or Observer Pattern）
+
+通过事件中心或消息队列来解耦发布者和订阅者。发布者发布事件，订阅者订阅感兴趣的事件。这种方式在某些库和框架中较为常见。
+
+```javascript
+const pubSub = new PubSub();
+pubSub.subscribe('message', (data) => {
+  console.log(`Received message: ${data}`);
+});
+pubSub.publish('message', 'Hello World!');
+```
+
+## Promise
+
+Promises 是一种更现代的异步编程解决方案，它解决了回调地狱问题，提供了链式调用的语法，并能更好地处理异步操作的成功、失败以及进度。一个Promise代表一个现在、将来或永远可能可用，或者永远不会可用的值。Promise的设计目的是为了解决回调地狱问题，使异步代码更加易于理解和维护。以下是Promise的基本使用方法。
+
+### 创建Promise
+
+Promise通过`new Promise((resolve, reject) => {...})`构造函数创建。这个构造函数接受一个函数作为参数，该函数有两个参数：`resolve`和`reject`，它们都是函数，由JavaScript引擎提供。
+
+```javascript
+const myPromise = new Promise((resolve, reject) => {
+  // 异步操作
+  setTimeout(() => {
+    const success = true;
+    if (success) {
+      resolve("操作成功");
+    } else {
+      reject("操作失败");
+    }
+  }, 2000);
+});
+```
+
+### 使用then处理结果
+
+当Promise的状态从`pending`变为`fulfilled`（成功）时，通过`then`方法注册的回调函数会被调用，处理成功的值。
+
+```javascript
+myPromise.then(result => {
+  console.log(result); // 输出: "操作成功"
+}).catch(error => {
+  console.log(error); // 如果有错误，这里会捕获到
+});
+```
+
+### 使用catch处理错误
+
+catch方法用于捕获在Promise链中抛出的错误，或者是那些直接在Promise构造函数中被reject的错误。
+
+### 链式调用
+
+Promise的`then`和`catch`方法返回一个新的Promise，这使得多个异步操作可以顺序执行，形成链式调用。
+
+```javascript
+myPromise
+  .then(result => {
+    console.log(result);
+    return "新的Promise结果";
+  })
+  .then(newResult => {
+    console.log(newResult);
+  })
+  .catch(error => {
+    console.error(error);
+  });
+```
+
+### Promise.all
+
+当需要并行执行多个Promise并等待所有都完成时，可以使用`Promise.all`方法。
+
+```javascript
+const promise1 = Promise.resolve("成功1");
+const promise2 = Promise.resolve("成功2");
+
+Promise.all([promise1, promise2])
+  .then(results => {
+    console.log(results); // 输出: ["成功1", "成功2"]
+  })
+  .catch(error => {
+    console.error(error);
+  });
+```
+
+### Promise.race
+
+`Promise.race`方法接收一个Promise数组作为参数，它返回一个新的Promise，这个新的Promise在数组中任意一个Promise解决或拒绝后，立刻以相同的状态结束。
+
+```javascript
+const promiseFast = new Promise(resolve => setTimeout(resolve, 800, '快速'));
+const promiseSlow = new Promise(resolve => setTimeout(resolve, 1200, '慢速'));
+
+Promise.race([promiseFast, promiseSlow])
+  .then(result => {
+    console.log(result); // 可能是"快速"或"慢速"，取决于哪个先完成
+  });
+```
+
+## async/await
+
+这是基于Promise的一种更高级的异步编程模型，通过在函数声明前加上`async`关键字，可以在函数体内使用`await`关键字等待Promise的解决。这使得异步代码看起来更像是同步代码，提高了代码的可读性和可维护性。
+
+```javascript
+async function fetchData() {
+  try {
+    const response = await fetch('https://api.example.com/data');
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+```
