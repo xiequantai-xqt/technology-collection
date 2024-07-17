@@ -512,3 +512,81 @@ console.log(MathUtils.gcd(100, 20));  // 输出 20
 ```
 
 在这个例子中，`gcd`方法是一个静态方法，它不需要访问任何实例变量，可以直接通过类名调用。
+
+### 构造函数里面的super是什么意思？用法？
+
+在JavaScript中，`super`关键字有几种不同的用途，主要是在类和继承的上下文中使用。当在子类的构造函数中使用`super`时，它用于调用父类（超类）的构造函数。这是面向对象编程中的一个关键概念，允许子类继承并可能扩展或修改父类的行为。
+
+用法：
+
+1. 调用父类构造函数：当你在一个派生类的构造函数中使用`super()`，你实际上是在调用基类的构造函数。这通常发生在子类构造函数的开始，并且必须在使用`this`关键字之前调用。这是因为`super()`会初始化从父类继承的属性和方法。
+
+```javascript
+class Parent {
+    constructor() {
+        this.value = 'parent';
+    }
+}
+
+class Child extends Parent {
+    constructor() {
+        super(); // 调用Parent的构造函数
+        this.value = 'child';
+    }
+}
+
+const child = new Child();
+console.log(child.value); // 输出 'child'
+```
+
+2. 调用父类的方法：在类的方法中，你可以使用`super.methodName()`来调用父类中相同名称的方法。
+
+```javascript
+class Parent {
+    sayHello() {
+        console.log('Hello from Parent');
+    }
+}
+
+class Child extends Parent {
+    sayHello() {
+        super.sayHello(); // 调用Parent的sayHello方法
+        console.log('Hello from Child');
+    }
+}
+
+const child = new Child();
+child.sayHello(); // 输出 'Hello from Parent' 和 'Hello from Child'
+```
+
+3. 访问父类的属性：类似地，在子类的方法中，你可以使用`super.propertyName`来访问或设置父类的属性。
+
+```javascript
+class Parent {
+    constructor() {
+        this.value = 'parent';
+    }
+}
+
+class Child extends Parent {
+    constructor() {
+        super();
+        console.log(super.value); // 输出 'parent'
+    }
+}
+
+const child = new Child();
+```
+
+请注意，当你在子类的构造函数中使用`super`时，你不能省略它，即使父类没有定义构造函数。如果父类没有构造函数，你仍然需要调用`super()`，尽管在这种情况下不传递任何参数。
+
+```javascript
+class Parent {}
+
+class Child extends Parent {
+    constructor() {
+        super(); // 即使Parent没有构造函数，也必须调用super()
+    }
+}
+```
+
