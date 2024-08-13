@@ -1,43 +1,310 @@
 # 闭包
 
-闭包是指一个函数可以访问、操作在其外部定义，但不在全局作用域内的变量。这是因为函数被创建时会捕获其周围的词法环境。当函数被调用时，即使它在外部函数执行完毕后仍然存在，它依然可以访问到创建时的词法环境的变量。
+## 什么是闭包？
 
-例如：
+JavaScript中的闭包是一个非常强大的特性，它允许一个函数访问并操作其外部作用域中的变量，即使在外部函数已经执行完毕后。
+
+## 闭包的作用？
+
+1. 保护变量：闭包可以使函数内部的变量不被外部访问，从而保护这些变量不受外界干扰。这种保护机制有助于防止全局变量污染和其他潜在的数据篡改问题。
+2. 数据封装：闭包可以帮助实现数据封装，即创建私有变量和方法，这些变量和方法只能通过特定的接口进行访问和修改。这有助于保持代码的整洁和安全。
+3. 记忆效果（缓存结果）：当函数需要频繁地执行相同或相似的操作时，可以利用闭包来缓存先前的计算结果，从而避免重复计算，提高性能。
+4. 函数工厂：闭包可以用来创建函数工厂，即一个函数可以根据不同的参数返回不同的函数实例。这些函数通常共享某些相同的上下文或配置。
+5. 异步操作：在异步编程中，闭包可以用来捕获执行上下文中的变量状态，确保在异步操作完成时，回调函数仍能访问到正确的变量值。
+
+> 说明：
+
+1. 变量保护
 
 ```javascript
-function outer() {
-    var count = 0;
-    return function inner() {
-        count++;
-        console.log(count);
+function createCounter() {
+    let count = 0; // 私有变量
+    return function() {
+        count += 1;
+        return count;
     };
 }
-var closureFunc = outer();
-closureFunc(); // 输出 1
-closureFunc(); // 输出 2
+
+const counter = createCounter();
+console.log(counter()); // 输出 1
+console.log(counter()); // 输出 2
 ```
 
-在这个例子中，`inner` 函数是一个闭包，因为它可以访问 `outer` 函数的局部变量 `count`，即使 `outer` 函数已经执行完毕。
+在这个例子中，`count` 是一个私有变量，它不能从外部直接访问或修改。`createCounter` 返回一个函数，该函数可以更新和返回 `count` 的值。
+
+2. 数据封装
+
+```javascript
+function createPerson(name, age) {
+    let _name = name;
+    let _age = age;
+
+    return {
+        getName: function() { return _name; },
+        getAge: function() { return _age; },
+        setName: function(newName) { _name = newName; },
+        setAge: function(newAge) { _age = newAge; }
+    };
+}
+
+const person = createPerson("Alice", 30);
+console.log(person.getName()); // 输出 "Alice"
+console.log(person.getAge()); // 输出 30
+person.setName("Bob");
+person.setAge(35);
+console.log(person.getName()); // 输出 "Bob"
+console.log(person.getAge()); // 输出 35
+```
+
+这里 `_name` 和 `_age` 是私有变量，通过公开的 `getName`, `getAge`, `setName`, 和 `setAge` 方法来访问和修改。
+
+3. 缓存结果
+
+```javascript
+function memoize(func) {
+    const cache = {};
+    return function(...args) {
+        const key = JSON.stringify(args);
+        if (!cache[key]) {
+            cache[key] = func.apply(this, args);
+        }
+        return cache[key];
+    };
+}
+
+const square = function(x) {
+    return x * x;
+};
+
+const memoizedSquare = memoize(square);
+console.log(memoizedSquare(5)); // 第一次计算 25
+console.log(memoizedSquare(5)); // 从缓存中获取 25
+```
+
+`memoize` 函数返回一个新函数，该函数会缓存之前调用的结果，以避免重复计算。
+
+4. 函数工厂
+
+```javascript
+function createMultiplier(factor) {
+    return function(value) {
+        return value * factor;
+    };
+}
+
+const double = createMultiplier(2);
+const triple = createMultiplier(3);
+
+console.log(double(5)); // 输出 10
+console.log(triple(5)); // 输出 15
+```
+
+`createMultiplier` 是一个函数工厂，根据传入的 `factor` 创建不同的乘法函数。
+
+5. 异步操作
+
+```javascript
+function asyncOperation(callback) {
+    setTimeout(function() {
+        const result = "some result";
+        callback(result);
+    }, 1000);
+}
+
+asyncOperation(function(result) {
+    console.log(result); // 输出 "some result"
+});
+```
+
+在这个例子中，闭包保证了 `callback` 函数在异步操作完成时能够访问到正确的 `result`。
+
+## 闭包的使用场景？
+
+1. 封装私有变量：闭包可以用来创建其他代码无法直接访问的变量，实现数据的隐藏。
+
+```javascript
+function createCounter() {
+  let count = 0;
+  return function() {
+    count += 1;
+    return count;
+  };
+}
+const counter = createCounter();
+console.log(counter()); // 1
+console.log(counter()); // 2
+```
+
+2. 模块模式：使用闭包可以创建具有私有成员的模块化对象。
+
+```javascript
+const myModule = (function() {
+  const privateData = 'secret';
+  function privateMethod() {
+    console.log(privateData);
+  }
+  return {
+    publicMethod: function() {
+      privateMethod();
+    }
+  };
+})();
+myModule.publicMethod(); // "secret"
+```
+
+3. 事件处理函数：在DOM事件中，闭包可以用来保存与特定事件相关的状态信息。
+
+```javascript
+function attachEventHandlers() {
+  const elements = document.querySelectorAll('.my-element');
+  elements.forEach((element, index) => {
+    element.addEventListener('click', function() {
+      console.log(`Element ${index} clicked`);
+    });
+  });
+}
+attachEventHandlers();
+```
+
+4. 函数柯里化（Currying）：柯里化是将多参数函数转换为一系列单参数函数的过程。闭包在这里被用来记住已提供的参数。
+
+```javascript
+function curry(func) {
+  return function curried(...args) {
+    if (args.length >= func.length) {
+      return func.apply(null, args);
+    } else {
+      return function(...args2) {
+        return curried.apply(null, [...args, ...args2]);
+      };
+    }
+  };
+}
+const add = function(x, y) { return x + y; };
+const curriedAdd = curry(add);
+console.log(curriedAdd(1)(2)); // 3
+```
+
+5. 异步编程：在处理异步操作如AJAX请求时，闭包可以用来保存回调函数的状态。
+
+```javascript
+function fetchData(url, callback) {
+  // 假设这是一个异步请求
+  setTimeout(() => {
+    const data = `data from ${url}`;
+    callback(data);
+  }, 1000);
+}
+fetchData('/api/data', function(result) {
+  console.log(result); // "data from /api/data"
+});
+```
+
+6. 定时器和动画：在定时器或动画效果中，闭包可以用来保持循环变量的状态。
+
+```javascript
+function animateElements(elements) {
+  elements.forEach((element, index) => {
+    setTimeout(() => {
+      element.style.opacity = 1;
+      console.log(`Element ${index} animated`);
+    }, index * 1000);
+  });
+}
+const elements = document.querySelectorAll('.animate-me');
+animateElements(elements);
+```
 
 # 原型链
 
+## 什么是原型链？
+
 JavaScript中，所有对象都有一个原型对象（除了`Object.prototype`的原型是`null`）。当你尝试访问一个对象的属性或方法时，如果该对象本身没有这个属性或方法，JavaScript引擎会沿着原型链查找，直到找到该属性或方法或到达原型链的终点（通常是`null`）。
 
-例如：
+## 使用场景？
+
+1. 实现继承：JavaScript 中的对象可以通过原型链来实现继承。一个对象可以通过将其 `__proto__` 属性指向另一个对象来继承该对象的属性和方法。
 
 ```javascript
-function Person(name) {
+function Animal(name) {
     this.name = name;
 }
-Person.prototype.greet = function() {
-    console.log("Hello, my name is " + this.name);
+
+Animal.prototype.speak = function() {
+    console.log(this.name + " makes a sound.");
 };
 
-var john = new Person("John");
-john.greet(); // 输出 "Hello, my name is John"
+function Dog(name, breed) {
+    Animal.call(this, name); // 继承 Animal 构造函数的属性
+    this.breed = breed;
+}
+
+Dog.prototype = Object.create(Animal.prototype);
+Dog.prototype.constructor = Dog;
+
+Dog.prototype.speak = function() {
+    console.log(this.name + " barks.");
+};
+
+const myDog = new Dog("Rufus", "Labrador");
+myDog.speak(); // 输出: Rufus barks.
 ```
 
-在这里，`greet` 方法并没有直接定义在 `john` 对象上，而是定义在了 `Person.prototype` 上。当调用 `john.greet()` 时，JavaScript 会沿着原型链找到 `Person.prototype` 并调用 `greet` 方法。
+2. 属性查找：当尝试访问一个对象的属性或方法时，如果该对象自身没有这个属性或方法，则JavaScript会沿着原型链向上查找，直到找到这个属性或方法为止。
+
+```javascript
+const obj = {
+    prop1: 'value1'
+};
+
+obj.__proto__.prop2 = 'value2';
+
+console.log(obj.prop1); // 输出: value1
+console.log(obj.prop2); // 输出: value2
+```
+
+3. 模拟类的行为：虽然ES6引入了`class`语法，但在ES5及之前版本中，通常使用构造函数配合原型链来模拟类的行为。
+
+```javascript
+function Person(name, age) {
+    this.name = name;
+    this.age = age;
+}
+
+Person.prototype.greet = function() {
+    console.log(`Hello, my name is ${this.name} and I am ${this.age} years old.`);
+};
+
+const john = new Person('John', 30);
+john.greet(); // 输出: Hello, my name is John and I am 30 years old.
+```
+
+4. 方法重写：通过原型链可以重写父类的方法。子类可以通过将自身的 `prototype` 属性指向父类 `prototype` 的新实例，并定义自己的方法来覆盖或扩展父类的行为。
+
+```javascript
+function Vehicle(type) {
+    this.type = type;
+}
+
+Vehicle.prototype.describe = function() {
+    console.log(`This is a ${this.type}.`);
+};
+
+function Car(type, color) {
+    Vehicle.call(this, type);
+    this.color = color;
+}
+
+Car.prototype = Object.create(Vehicle.prototype);
+Car.prototype.constructor = Car;
+
+Car.prototype.describe = function() {
+    console.log(`This is a ${this.color} ${this.type}.`);
+};
+
+const myCar = new Car('sedan', 'red');
+myCar.describe(); // 输出: This is a red sedan.
+```
 
 # 作用域
 
