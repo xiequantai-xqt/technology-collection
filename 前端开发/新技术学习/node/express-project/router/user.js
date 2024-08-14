@@ -1,0 +1,18 @@
+const express = require('express')
+const router = express.Router()
+const { verfiyToken } = require('../utils/jwt')
+const userController = require('../controller/userController')
+const validator = require('../middleware/validator/userValidator')
+const multer  = require('multer')
+const upload = multer({ dest: 'uploads/' })
+
+router.post('/register',validator.register,userController.register)
+router.post('/login',validator.login,userController.login)
+router.get('/list',verfiyToken(),userController.list)
+router.put('/',verfiyToken(),validator.update,userController.update)
+router.post('/headImg',verfiyToken(),upload.single('headimg'),userController.headImg)
+router.post('/subscribe/:userId',verfiyToken(),userController.subscribe)
+router.post('/getuser/:userId',verfiyToken(false),userController.getuser)
+router.post('/getSubscribeList/:userId',userController.getSubscribeList)
+router.post('/getChannelList',verfiyToken(),userController.getChannelList)
+module.exports = router

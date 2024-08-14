@@ -1,0 +1,17 @@
+const express = require('express')
+const router = express.Router()
+const vodController = require('../controller/vodController')
+const videoController = require('../controller/videoController')
+const { verfiyToken } = require('../utils/jwt')
+const {videoValidator} = require('../middleware/validator/videoValidator')
+
+router.get('/list',videoController.getVideoList)
+router.get('/getvod',verfiyToken(),vodController.getvod)
+router.post('/createVideo',verfiyToken(),videoValidator,videoController.createVideo)
+router.get('/:videoId',verfiyToken(false),videoController.getVideoDetail)
+router.post('/comment/:videoId',verfiyToken(),videoController.videoComment)
+router.post('/commentList/:videoId',videoController.videoCommentList)
+router.delete('/deleteComment/:videoId/:commentId',verfiyToken(),videoController.deleteVideoComment)
+router.get('/videoLike/:videoId',verfiyToken(),videoController.videoLike)
+router.get('/like/list',verfiyToken(),videoController.videolikelist)
+module.exports = router
