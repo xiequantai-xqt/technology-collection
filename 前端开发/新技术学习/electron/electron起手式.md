@@ -67,7 +67,7 @@ yarn add --dev electron
 yarn start
 ```
 
-添加页面：
+## 渲染页面
 
 > index.html
 
@@ -91,20 +91,26 @@ yarn start
     <p>👋</p>
     <p id="info"></p>
   </body>
-  <!-- <script src="./renderer.js"></script> -->
+  <script src="./renderer.js"></script>
 </html>
 ```
+
+## 运行的主进程
 
 > main.js
 
 ```javascript
 const { app, BrowserWindow } = require('electron/main')
+const path = require('path')
 
 // 创建窗口，让窗口加载一个界面，这个界面用web技术实现，这个界面运行在渲染进程中
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 800,
-    height: 600
+    height: 600,
+    webPreferences:{
+      preload: path.join(__dirname,'preload.js')
+    }
   })
 
   win.loadFile('index.html')
@@ -113,6 +119,7 @@ const createWindow = () => {
 app.whenReady().then(() => {
   createWindow()
 
+  // 窗口被激活时，创建窗口、加载页面
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
@@ -120,10 +127,39 @@ app.whenReady().then(() => {
   })
 })
 
+// 所有的窗口关闭时，app进程结束
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
 ```
+
+## 预加载脚本
+
+> preload.js
+
+```javascript
+// 获取数据的操作：通过预加载脚本从渲染器访问Node.js
+window.addEventListener('DOMContentLoaded',()=>{
+    const replaceText = (selector,text)=>{
+        const element = document.getElementById(selector)
+        if(element)element.innerText = text
+    }
+    for(const type of ['chrome','node','electron']){
+        replaceText(`${type}-version`,process.version[type])
+    }
+})
+```
+
+## 交互脚本
+
+> render.js
+
+```javascript
+```
+
+# electron的生命周期
+
+![](https://guiwanzhyq.oss-cn-hangzhou.aliyuncs.com/hc/img/20240820/d0b41ae6-af0f-4946-bca5-0c0d29f88901.png)
 
