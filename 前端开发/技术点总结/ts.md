@@ -768,3 +768,15 @@ function fn<T,K extends keyof T>(obj:T,key:K){
 }
 console.log(fn({name:'carl',age:18},"name"))
 ```
+
+# 忽略类型TS报错
+
+在src目录下面创建一个 typings.d.ts：
+
+> typings.d.ts
+
+```typescript
+// global.d.ts 或 typings.d.ts
+declare var OSS: any; // 或者更具体的类型定义
+```
+
